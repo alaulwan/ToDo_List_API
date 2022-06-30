@@ -8,8 +8,6 @@
 
         public DbSet<Person> Persons { get; set; }
 
-        public DbSet<Person> GetPersons() { return Persons; }
-
         public DbSet<ToDo> Tickets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

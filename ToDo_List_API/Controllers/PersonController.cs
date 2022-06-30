@@ -1,6 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using ToDo_List_API.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using ToDo_List_API.Repositories;
 
 namespace ToDo_List_API.Controllers
 {
@@ -8,22 +7,23 @@ namespace ToDo_List_API.Controllers
     [ApiController]
     public class PersonController : ControllerBase
     {
-        private readonly DataContext _context;
-        public PersonController(DataContext context)
+        public IPersonRepo repo;
+
+        public PersonController(DataContext dataContext)
         {
-            this._context = context;
+            this.repo = new PersonRepo(dataContext);
         }
 
         [HttpGet]
         public async Task<ActionResult<List<Person>>> Get()
         {
-            return Ok(await _context.Persons.ToArrayAsync());
+            return Ok(await repo.Get());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Person>> GetPerson(int id)
         {
-            var person = _context.Persons.Where(p => p.Id == id).Include(p => p.tickets).FirstOrDefault();
+            var person = repo.GetPerson(id);
             if (person == null)
                 return NotFound("Person Not Found");
 
@@ -36,13 +36,12 @@ namespace ToDo_List_API.Controllers
         }
 
         [HttpGet("{id}/todo")]
-        public async Task<ActionResult<Person>> GetToDoForPerson(int id, bool? open)
+        public async Task<ActionResult<List<ToDo>>> GetToDoForPerson(int id, bool? open)
         {
-            var person = _context.Persons.Where(p => p.Id == id).Include(p => p.tickets).FirstOrDefault();
-            if (person == null)
+            var toDoList = repo.GetToDoForPerson(id);
+            if (toDoList == null)
                 return NotFound("Person Not Found");
 
-            List<ToDo> toDoList = person.tickets.ToList();
             if(open.HasValue)
             {
                 if (open.Value)
@@ -57,8 +56,7 @@ namespace ToDo_List_API.Controllers
         [HttpPost]
         public async Task<ActionResult<Person>> AddPerson(Person person)
         {
-            _context.Persons.Add(person);
-            await _context.SaveChangesAsync();
+            await repo.Add(person);
             return Ok(person);
         }
     }

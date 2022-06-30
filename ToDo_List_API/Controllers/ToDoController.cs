@@ -66,14 +66,11 @@ namespace ToDo_List_API.Controllers
 
             if(currentToDo == null) return NotFound("Ticket Not Found");
 
-            if(todo.Status != null)
-            {
-                var parsed = Enum.TryParse("New", out ToDo.ItemStatus myStatus);
-                if(!parsed)
-                    return BadRequest("Not Valid Status");
-                currentToDo.Status = myStatus;
-            }
 
+            if (todo.Status != null && !Enum.IsDefined(typeof(ToDo.ItemStatus), todo.Status))
+                return BadRequest("Not Valid Status");
+
+            if (todo.Status != null) currentToDo.Status = todo.Status;
             if (todo.Task != null) currentToDo.Task = todo.Task;
             if (todo.Description != null) currentToDo.Description = todo.Description;
             if (todo.DueDateTime != null) currentToDo.DueDateTime = todo.DueDateTime;
